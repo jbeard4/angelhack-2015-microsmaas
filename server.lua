@@ -11,6 +11,37 @@ tmr.alarm(0, 1000, 1, function()
    end
 end)
 
+sensorType="dht11"             -- set sensor type dht11 or dht22
+pin = 4 --  data pin, GPIO2
+humi=0
+temp=0
+fare=0
+bimb=1
+--load DHT module for read sensor
+function ReadDHT11()
+    dht=require("dht")
+    dht.read(pin)
+    chck=1
+    h=dht.getHumidity()
+    t=dht.getTemperature()
+    if h==nil then h=0 chck=0 end
+    if sensorType=="dht11"then
+        humi=h/256
+        temp=t/256
+    else
+        humi=h/10
+        temp=t/10
+    end
+    fare=(temp*9/5+32)
+    print("Humidity:    "..humi.."%")
+    print("Temperature: "..temp.." deg C")
+    print("Temperature: "..fare.." deg F")
+    -- release module
+    dht=nil
+    package.loaded["dht"]=nil
+end
+ReadDHT11()
+
 -- A simple http server
 srv=net.createServer(net.TCP)
 srv:listen(80,function(conn)
@@ -53,7 +84,11 @@ Connection: keep-alive
       --start the SSE stream
       print('start the SSE stream')
       tmr.alarm(1, 1000, 1, function()
-        payload = "data: " .. string.format("%.3f", math.random()) .. "\n\n"
+        ReadDHT11()
+        payload = 'data: {"humidity":' .. 
+                  string.format('%d',humi) .. 
+                  ',"temperature" : ' ..  
+                  string.format('%d',temp) '}\n\n'
         print('sending data payload',payload)
         conn:send(payload)
       end)
