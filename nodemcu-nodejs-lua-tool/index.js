@@ -6,6 +6,7 @@ var serialPort = new SerialPort("/dev/tty.usbmodem1411", {
 }, false); // this is the openImmediately flag [default is true]
 
 var luaFile = process.argv[2];
+var executeFile = process.argv[3] === 'true';
 var scionLua = fs.readFileSync(luaFile,'utf8');
 
 serialPort.open(function (error) {
@@ -31,9 +32,10 @@ serialPort.open(function (error) {
         })
       ).concat([
         'file.flush()',
-        'file.close()',
-        'dofile("' + luaFile + '")'
-      ])
+        'file.close()'
+      ].concat(
+        executeFile ? [ 'dofile("' + luaFile + '")' ] : []
+      ))
     ,function(s,cb){
       currentCb = cb, currentStr = s + '\n';
       console.log('writing line',currentStr, currentStr.length);
