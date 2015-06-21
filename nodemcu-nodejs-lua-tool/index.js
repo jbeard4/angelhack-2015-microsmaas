@@ -27,7 +27,7 @@ serialPort.open(function (error) {
         'file.open("' + luaFile + '", "w+")',
       ].concat(
         scionLua.split('\n').map(function(s){
-          return 'file.writeline([[' + s + ']])';
+          return 'file.writeline([=[' + s + ']=])';
         })
       ).concat([
         'file.flush()',
